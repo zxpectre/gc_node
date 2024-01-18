@@ -1,0 +1,25 @@
+{
+  "name": "unimatrix-peer",
+  "version": "1.0.0",
+  "description": "Unimatrix Relay Peer",
+  "main": "unimatrix.js",
+  "scripts": {
+    "start":"nodejs unimatrix.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "unimatrix",
+    "gamechanger",
+    "wallet",
+    "dapps",
+    "p2p",
+    "multisig",
+    "sync",
+    "cardano"
+  ],
+  "author": "zxpectre",
+  "license": "ISC",
+  "dependencies": {
+    "gun": "^0.2020.1239"
+  }
+}

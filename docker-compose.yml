@@ -183,7 +183,19 @@ services:
       timeout: 10s
       retries: 1000
 
-
+  unimatrix-peer:
+    image: unimatrix-peer:latest
+    build:
+      context: ./src/unimatrix
+    restart: always
+    environment:
+      - UNIMATRIX_PORT:${UNIMATRIX_PORT:-8765}
+    # static http server can be exposed as well
+    ports:
+      - ${UNIMATRIX_PORT:-8765}:8765
+    # TODO: fix env vars passing and link to persistent volume
+    volumes:
+      - unimatrix-data:/work/data
 
 secrets:
   postgres_db:
@@ -200,3 +212,4 @@ volumes:
   node-ipc:
   pgadmin-data:
   token-registry-data:
+  unimatrix-data:
