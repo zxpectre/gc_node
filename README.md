@@ -36,3 +36,7 @@ Postgrest setup based on Lantana and this resource:
 
 https://medium.com/@shlomi.fenster1/setup-local-environment-for-postgresql-5531b8268397
 
+
+## List ports
+docker ps --format 'table {{.Names}}\t{{.Ports}}'
+

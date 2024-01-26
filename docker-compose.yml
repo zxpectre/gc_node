@@ -13,7 +13,8 @@ services:
       - postgres_user
       - postgres_db
     ports:
-      - ${POSTGRES_PORT:-5432}:5432
+      - target: 5432
+        published: ${POSTGRES_PORT:-5432}
     volumes:
       - postgres:/var/lib/postgresql/data
     restart: on-failure
@@ -104,7 +105,7 @@ services:
   postgrest:
     image: postgrest/postgrest
     ports:
-      - "3000:3000"
+      - ${POSTGREST_PORT:-3000}:3000
     links:
       - postgres:db_host
     environment:
@@ -120,9 +121,9 @@ services:
   swagger:
     image: swaggerapi/swagger-ui
     ports:
-        - "8080:8080"
-    expose:
-        - "8080"
+        - ${SWAGGER_PORT:-8080}:8080
+    # expose:
+    #     - "8080"
     environment:
         API_URL: http://external_postgrest_ip:3000/
     depends_on:
@@ -131,7 +132,6 @@ services:
 
 
   pgadmin:
-    container_name: pgadmin4
     image: dpage/pgadmin4
     restart: always
     environment:
@@ -139,7 +139,7 @@ services:
         PGADMIN_DEFAULT_PASSWORD: 12345678
         PGADMIN_LISTEN_PORT: 80
     ports:
-        - "5050:80"
+        - "${PGADMIN_PORT:-5050}:80"
     links:
         - "postgres:pgsql-server"
     volumes:
@@ -151,10 +151,8 @@ services:
   token-registry:
     image:  gimbalabs/dbless-cardano-token-registry:latest
     restart: always
-    environment:
-      - TOKEN_REGISTRY_MAPPINGS_DIR:${TOKEN_REGISTRY_MAPPINGS_DIR:-/app/cardano-token-registry/mappings}
     ports:
-      - "3042:3042"
+      - ${TOKEN_REGISTRY_PORT:-3042}:3042
     volumes:
       - token-registry-data:/app/cardano-token-registry
     depends_on:
@@ -166,11 +164,6 @@ services:
     entrypoint: sh
     restart: always
     # due to weird entrypoint issues, below env vars are not reaching command line, so pass them on docker-compose call 
-    environment:
-      TOKEN_REGISTRY_GIT_REPO: ${TOKEN_REGISTRY_GIT_REPO:-https://github.com/cardano-foundation/cardano-token-registry}
-      TOKEN_REGISTRY_GIT_BRANCH: ${TOKEN_REGISTRY_GIT_BRANCH:-master}
-      TOKEN_REGISTRY_DEST: ${TOKEN_REGISTRY_DEST:-/app/cardano-token-registry}
-      TOKEN_REGISTRY_SYNC_INTERVAL: ${TOKEN_REGISTRY_SYNC_INTERVAL:-3600}
     volumes:
       -  token-registry-data:/app/cardano-token-registry
     command: [
@@ -188,9 +181,6 @@ services:
     build:
       context: ./src/unimatrix
     restart: always
-    environment:
-      - UNIMATRIX_PORT:${UNIMATRIX_PORT:-8765}
-    # static http server can be exposed as well
     ports:
       - ${UNIMATRIX_PORT:-8765}:8765
     # TODO: fix env vars passing and link to persistent volume
