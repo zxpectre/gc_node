@@ -4,6 +4,18 @@ if [[ -z "$1" ]]; then
 	exit -1
 fi &&
 
+#Secrets:
+#TODO: CREATE A PROPER READ ONLY ROLE FOR POSTGREST SERVICE, THIS IS UNSAFE:
+POSTGREST_DB=$(<config/secrets/cardano-db-sync/postgres_db)
+POSTGREST_PASSWORD=$(<config/secrets/cardano-db-sync/postgres_password)
+POSTGREST_USER=$(<config/secrets/cardano-db-sync/postgres_user)
+
+# User config
+EMAIL=zxpectre@gamechanger.finance
+# User config
+EMAIL=zxpectre@gamechanger.finance
+EMAIL_SANITIZED=`echo "${EMAIL}" | tr @ _`
+
 #Params:
 NETWORK=$1
 PROJECT_NAME=gc-node-${NETWORK}
@@ -18,11 +30,7 @@ TOKEN_REGISTRY_DEST=/app/cardano-token-registry
 TOKEN_REGISTRY_SYNC_INTERVAL=60 #3600s=1h
 TOKEN_REGISTRY_MAPPINGS_DIR=$TOKEN_REGISTRY_DEST/mappings
 
-#Secrets:
-#TODO: CREATE A PROPER READ ONLY ROLE FOR POSTGREST SERVICE, THIS IS UNSAFE:
-POSTGREST_DB=$(<config/secrets/cardano-db-sync/postgres_db)
-POSTGREST_PASSWORD=$(<config/secrets/cardano-db-sync/postgres_password)
-POSTGREST_USER=$(<config/secrets/cardano-db-sync/postgres_user)
+
 
 echo "Initializing $PROJECT_NAME with this params:" &&
 echo "NETWORK	= $NETWORK" &&
@@ -53,5 +61,7 @@ TOKEN_REGISTRY_GIT_BRANCH=$TOKEN_REGISTRY_GIT_BRANCH \
 TOKEN_REGISTRY_DEST=$TOKEN_REGISTRY_DEST \
 TOKEN_REGISTRY_SYNC_INTERVAL=$TOKEN_REGISTRY_SYNC_INTERVAL \
 TOKEN_REGISTRY_MAPPINGS_DIR=$TOKEN_REGISTRY_MAPPINGS_DIR \
+EMAIL=$EMAIL \
+EMAIL_SANITIZED=$EMAIL_SANITIZED \
 docker compose -p $PROJECT_NAME --env-file docker-${NETWORK}.env up -d &&
 docker compose -p $PROJECT_NAME logs -f
