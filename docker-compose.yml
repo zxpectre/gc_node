@@ -108,10 +108,10 @@ services:
     links:
       - postgres:db_host
     environment:
-      PGRST_DB_URI: postgres://$${POSTGREST_USER}:$${POSTGREST_PASSWORD}@db_host/$${POSTGREST_DB}
+      PGRST_DB_URI: postgres://${POSTGREST_USER}:${POSTGREST_PASSWORD}@db_host/${POSTGREST_DB}
       PGRST_DB_SCHEMA: public
       #IMPORTANT: In production this role should not be the same as the one used for the connection:
-      PGRST_DB_ANON_ROLE: $${POSTGREST_USER}
+      PGRST_DB_ANON_ROLE: ${POSTGREST_USER}
       PGRST_SERVER_PROXY_URI: "http://127.0.0.1:3000"
     depends_on:
       postgres:
@@ -124,7 +124,7 @@ services:
     # expose:
     #     - "8080"
     environment:
-        API_URL: http://external_postgrest_ip:3000/
+        API_URL: http://localhost:${POSTGREST_PORT}/
     depends_on:
       postgres:
         condition: service_healthy
@@ -134,16 +134,18 @@ services:
     restart: always
     # TODO: make all this configurable.
     environment:
-        PGADMIN_DEFAULT_EMAIL: $${EMAIL}
-        PGADMIN_DEFAULT_PASSWORD: $${POSTGREST_PASSWORD}
-        PGADMIN_LISTEN_PORT: 80
-        EMAIL_SANITIZED: $${EMAIL_SANITIZED}
+      - PGADMIN_DEFAULT_EMAIL=${EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${POSTGREST_PASSWORD}
+      - PGADMIN_LISTEN_PORT=80
+      - EMAIL_SANITIZED=${EMAIL_SANITIZED}
         # PGADMIN_CONFIG_SHARED_STORAGE: "[{ 'name': 'Shared 1', 'path': '/var/lib/pgadmin/storage','restricted_access': False}]"
+    secrets:
+      - pgpass_file
     entrypoint: >
       /bin/sh -c "
-      mkdir -p /var/lib/pgadmin/storage/$${EMAIL_SANITIZED};
-      cp /tmp/pgpass /var/lib/pgadmin/storage/$${EMAIL_SANITIZED}/pgpass;
-      chmod 600 /var/lib/pgadmin/storage/$${EMAIL_SANITIZED}/pgpass;
+      mkdir -p /var/lib/pgadmin/storage/${EMAIL_SANITIZED};
+      cp /run/secrets/pgpass_file /var/lib/pgadmin/storage/${EMAIL_SANITIZED}/pgpass;
+      chmod 600 /var/lib/pgadmin/storage/${EMAIL_SANITIZED}/pgpass;
       /entrypoint.sh;
       "
     ports:
@@ -153,8 +155,6 @@ services:
     volumes:
         - pgadmin-data:/var/lib/pgadmin
     configs:
-      - source: pgpass
-        target: /tmp/pgpass
       - source: servers.json
         target: /pgadmin4/servers.json
     depends_on:
@@ -174,10 +174,8 @@ services:
 
   token-registry-updater:
     image: alpine/git
-    env_file:
-      - path: ./default.env
-    # environment:
-    #     TOKEN_REGISTRY_GIT_REPO: ${TOKEN_REGISTRY_GIT_REPO}
+    env_file: 
+      - ./token-reg.env
     entrypoint: sh
     restart: always
     # due to weird entrypoint issues, below env vars are not reaching command line, so pass them on docker-compose call 
@@ -205,8 +203,6 @@ services:
       - unimatrix-data:/work/data
 
 configs:
-  pgpass:
-    content: gc-node-preprod-postgres-1:5432:*:cardano-db-sync:$${POSTGREST_PASSWORD}
   servers.json:
     content: |
       {"Servers": {"1": {
@@ -230,8 +226,9 @@ secrets:
     file: ./config/secrets/cardano-db-sync/postgres_password
   postgres_user:
     file: ./config/secrets/cardano-db-sync/postgres_user
-
-
+  pgpass_file:
+    file: ./config/secrets/cardano-db-sync/pgpass
+  
 volumes:
   db-sync-data:
   postgres:
