@@ -4,11 +4,22 @@ if [[ -z "$1" ]]; then
 	exit -1
 fi &&
 
+if [[ -s config/secrets/cardano-db-sync/postgres_password ]]
+then
+     echo "Password is set"
+else
+     echo "Please generate a password first, use:"
+     echo "./scripts/generate-password.sh" 
+     exit 0
+fi
+
 #Secrets:
 #TODO: CREATE A PROPER READ ONLY ROLE FOR POSTGREST SERVICE, THIS IS UNSAFE:
 export POSTGREST_DB=$(<config/secrets/cardano-db-sync/postgres_db)
 export POSTGREST_PASSWORD=$(<config/secrets/cardano-db-sync/postgres_password)
 export POSTGREST_USER=$(<config/secrets/cardano-db-sync/postgres_user)
+echo -n "*:5432:*:cardano-db-sync:${POSTGREST_PASSWORD}" > config/secrets/cardano-db-sync/pgpass
+
 
 # User config
 export EMAIL=zxpectre@gamechanger.finance

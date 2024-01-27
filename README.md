@@ -9,6 +9,10 @@ cd gc_node
 
 ./scripts/install.sh
 
+### Generate a password
+
+./scripts/generate-password.sh
+
 ### Preprod
 
 ./scripts/up.sh preprod
