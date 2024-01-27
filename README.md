@@ -40,3 +40,5 @@ https://medium.com/@shlomi.fenster1/setup-local-environment-for-postgresql-5531b
 ## List ports
 docker ps --format 'table {{.Names}}\t{{.Ports}}'
 
+## Test ogmios
+curl -H 'Accept: application/json' http://localhost:1338/health

@@ -134,6 +134,14 @@ services:
   pgadmin:
     image: dpage/pgadmin4
     restart: always
+    # TODO: make all this configurable.
+    entrypoint: >
+      /bin/sh -c "
+      mkdir -p /var/lib/pgadmin/storage/zxpectre_gamechanger.finance;
+      cp /tmp/pgpass /var/lib/pgadmin/storage/zxpectre_gamechanger.finance/pgpass;
+      chmod 600 /var/lib/pgadmin/storage/zxpectre_gamechanger.finance/pgpass;
+      /entrypoint.sh;
+      "
     environment:
         PGADMIN_DEFAULT_EMAIL: zxpectre@gamechanger.finance
         PGADMIN_DEFAULT_PASSWORD: 12345678
@@ -144,6 +152,12 @@ services:
         - "postgres:pgsql-server"
     volumes:
         - pgadmin-data:/var/lib/pgadmin
+        # - ./config/pgadmin:/pgadmin4/pgpass
+    configs:
+      - source: pgpass
+        target: /tmp/pgpass
+      - source: servers.json
+        target: /pgadmin4/servers.json
     depends_on:
       postgres:
         condition: service_healthy
@@ -187,6 +201,25 @@ services:
     volumes:
       - unimatrix-data:/work/data
 
+configs:
+  pgpass:
+    content: gc-node-preprod-postgres-1:5432:*:cardano-db-sync:v8hlDV0yMAHHlIurYupj
+  servers.json:
+    content: |
+      {"Servers": {"1": {
+        "Group": "Servers",
+        "Name": "Preprod",
+        "Host": "gc-node-preprod-postgres-1",
+        "Port": 5432,
+        "MaintenanceDB": "cardano-db-sync",
+        "Username": "cardano-db-sync",
+        "ConnectionParameters": {
+            "sslmode": "prefer",
+            "connect_timeout": 10,
+            "passfile": "/pgpass"
+        }
+      }}}
+
 secrets:
   postgres_db:
     file: ./config/secrets/cardano-db-sync/postgres_db
@@ -194,6 +227,7 @@ secrets:
     file: ./config/secrets/cardano-db-sync/postgres_password
   postgres_user:
     file: ./config/secrets/cardano-db-sync/postgres_user
+
 
 volumes:
   db-sync-data:
