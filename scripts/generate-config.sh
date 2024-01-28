@@ -14,6 +14,14 @@ else
      exit 0
 fi
 
+TOKEN_REGISTRY_GIT_REPO=https://github.com/cardano-foundation/cardano-token-registry
+TOKEN_REGISTRY_GIT_BRANCH=master
+TOKEN_REGISTRY_DEST=/app/cardano-token-registry
+TOKEN_REGISTRY_MAPPINGS_DIR=${TOKEN_REGISTRY_DEST}/mappings
+TOKEN_REGISTRY_SYNC_INTERVAL=60
+
+TOKEN_REGISTRY_SCRIPT="echo 'Token Registry will be updated from ${TOKEN_REGISTRY_GIT_REPO}:${TOKEN_REGISTRY_GIT_BRANCH} into ${TOKEN_REGISTRY_DEST} each ${TOKEN_REGISTRY_SYNC_INTERVAL} seconds...' && while true; do if [ ! -e ${TOKEN_REGISTRY_DEST}/.git ]; then git clone ${TOKEN_REGISTRY_GIT_REPO} ${TOKEN_REGISTRY_DEST}; fi; cd ${TOKEN_REGISTRY_DEST} && git reset && git checkout ${TOKEN_REGISTRY_GIT_BRANCH} && git pull; sleep ${TOKEN_REGISTRY_SYNC_INTERVAL}; done;"
+
 #Secrets:
 #TODO: CREATE A PROPER READ ONLY ROLE FOR POSTGREST SERVICE, THIS IS UNSAFE:
 POSTGREST_DB=$(<config/secrets/cardano-db-sync/postgres_db)
@@ -32,6 +40,8 @@ echo "POSTGREST_PASSWORD=${POSTGREST_PASSWORD}" >> docker-preprod.env
 echo "POSTGREST_USER=${POSTGREST_USER}" >> docker-preprod.env
 echo "EMAIL=${EMAIL}" >> docker-preprod.env
 echo "EMAIL_SANITIZED=${EMAIL_SANITIZED}" >> docker-preprod.env
+echo "TOKEN_REGISTRY_SCRIPT=${TOKEN_REGISTRY_SCRIPT}" >> docker-preprod.env
+
 
 cat common.env > docker-mainnet.env 
 cat mainnet.env >> docker-mainnet.env
@@ -40,4 +50,5 @@ echo "POSTGREST_PASSWORD=${POSTGREST_PASSWORD}" >> docker-mainnet.env
 echo "POSTGREST_USER=${POSTGREST_USER}" >> docker-mainnet.env
 echo "EMAIL=${EMAIL}" >> docker-mainnet.env
 echo "EMAIL_SANITIZED=${EMAIL_SANITIZED}" >> docker-mainnet.env
+echo "TOKEN_REGISTRY_SCRIPT=${TOKEN_REGISTRY_SCRIPT}" >> docker-mainnet.env
 
