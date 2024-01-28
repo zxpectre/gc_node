@@ -105,10 +105,8 @@ services:
     image: postgrest/postgrest
     ports:
       - ${POSTGREST_PORT:-3000}:3000
-    links:
-      - postgres:db_host
     environment:
-      PGRST_DB_URI: postgres://${POSTGREST_USER}:${POSTGREST_PASSWORD}@db_host/${POSTGREST_DB}
+      PGRST_DB_URI: postgres://${POSTGREST_USER}:${POSTGREST_PASSWORD}@${POSTGRES_HOST}:5432/${POSTGREST_DB}
       PGRST_DB_SCHEMA: public
       #IMPORTANT: In production this role should not be the same as the one used for the connection:
       PGRST_DB_ANON_ROLE: ${POSTGREST_USER}
@@ -205,20 +203,6 @@ services:
 configs:
   servers.json:
     content: ${PGADMIN_SERVER}
-    # content: |
-    #   {"Servers": {"1": {
-    #     "Group": "Servers",
-    #     "Name": "Preprod",
-    #     "Host": "gc-node-preprod-postgres-1",
-    #     "Port": 5432,
-    #     "MaintenanceDB": "cardano-db-sync",
-    #     "Username": "cardano-db-sync",
-    #     "ConnectionParameters": {
-    #         "sslmode": "prefer",
-    #         "connect_timeout": 10,
-    #         "passfile": "/pgpass"
-    #     }
-    #   }}}
 
 secrets:
   postgres_db:

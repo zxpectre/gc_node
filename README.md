@@ -13,6 +13,11 @@ cd gc_node
 
 ./scripts/generate-password.sh
 
+### Email
+
+Add your email for access to pgAdmin. Into this file
+./config/user/e-mail
+
 ### Preprod
 
 ./scripts/up.sh preprod
