@@ -6,4 +6,4 @@ fi &&
 export NETWORK=$1 &&\
 export PROJECT_NAME=gc-node-${NETWORK} &&\
 
-sudo docker compose -p ${PROJECT_NAME}  logs -f
+docker compose -p ${PROJECT_NAME} logs -f

@@ -41,6 +41,7 @@ echo "POSTGREST_USER=${POSTGREST_USER}" >> docker-preprod.env
 echo "EMAIL=${EMAIL}" >> docker-preprod.env
 echo "EMAIL_SANITIZED=${EMAIL_SANITIZED}" >> docker-preprod.env
 echo "TOKEN_REGISTRY_SCRIPT=${TOKEN_REGISTRY_SCRIPT}" >> docker-preprod.env
+echo "TOKEN_REGISTRY_DEST=${TOKEN_REGISTRY_DEST}" >> docker-preprod.env
 
 
 cat common.env > docker-mainnet.env 
@@ -51,4 +52,4 @@ echo "POSTGREST_USER=${POSTGREST_USER}" >> docker-mainnet.env
 echo "EMAIL=${EMAIL}" >> docker-mainnet.env
 echo "EMAIL_SANITIZED=${EMAIL_SANITIZED}" >> docker-mainnet.env
 echo "TOKEN_REGISTRY_SCRIPT=${TOKEN_REGISTRY_SCRIPT}" >> docker-mainnet.env
-
+echo "TOKEN_REGISTRY_DEST=${TOKEN_REGISTRY_DEST}" >> docker-mainnet.env

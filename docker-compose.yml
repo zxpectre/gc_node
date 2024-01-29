@@ -172,8 +172,6 @@ services:
 
   token-registry-updater:
     image: alpine/git
-    env_file: 
-      - ./token-reg.env
     entrypoint: sh
     restart: always
     # due to weird entrypoint issues, below env vars are not reaching command line, so pass them on docker-compose call 
@@ -184,7 +182,7 @@ services:
       "${TOKEN_REGISTRY_SCRIPT}"
           ]
     healthcheck:
-      test: ["CMD-SHELL","-c", "[ -d $$TOKEN_REGISTRY_DEST ] && exit 0"]
+      test: ["CMD-SHELL","-c", "[ -d $TOKEN_REGISTRY_DEST ] && exit 0"]
       interval: 30s
       timeout: 10s
       retries: 1000
