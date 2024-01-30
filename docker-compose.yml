@@ -115,7 +115,25 @@ services:
       postgres:
         condition: service_healthy
 
+  postgrest-gc:
+    image: postgrest/postgrest
+    ports:
+      - 3005:3000
+    environment:
+      PGRST_DB_URI: postgres://${POSTGREST_USER}:${POSTGREST_PASSWORD}@${POSTGRES_HOST}:5432/${POSTGREST_DB}
+      PGRST_DB_SCHEMA: gamechanger
+      #IMPORTANT: In production this role should not be the same as the one used for the connection:
+      PGRST_DB_ANON_ROLE: ${POSTGREST_USER}
+      PGRST_SERVER_PROXY_URI: "http://127.0.0.1:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   swagger:
+    # labels:
+    #   - "traefik.enable=true"
+    #   - "traefik.http.routers.swagger.rule=Host(`sunflower.m2tec.nl`) && PathPrefix(`/swagger`)"
+    #   - "traefik.http.routers.swagger.entrypoints=web" 
     image: swaggerapi/swagger-ui
     ports:
         - ${SWAGGER_PORT:-8080}:8080
@@ -128,6 +146,12 @@ services:
         condition: service_healthy
 
   pgadmin:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.pgadmin.rule=Host(`pgadmin.sunflower.m2tec.nl`)"
+      # - "traefik.http.routers.pgadmin.rule=Host(`sunflower.m2tec.nl`) && PathPrefix(`/pgadmin`)"
+      # - "traefik.http.middlewares.pgadmin.stripprefix.prefixes=/pgadmin"
+      - "traefik.http.routers.pgadmin.entrypoints=web"
     image: dpage/pgadmin4
     restart: always
     # TODO: make all this configurable.
