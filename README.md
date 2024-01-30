@@ -36,3 +36,14 @@ Postgrest setup based on Lantana and this resource:
 
 https://medium.com/@shlomi.fenster1/setup-local-environment-for-postgresql-5531b8268397
 
+### Koios
+
+Postgresdb tunning:
+https://cardano-community.github.io/guild-operators/Appendix/postgres/
+
+Setup script:
+https://github.com/cardano-community/guild-operators/tree/alpha/scripts/grest-helper-scripts (source)
+https://cardano-community.github.io/guild-operators/Build/grest/
+
+Nodes:
+https://github.com/cardano-community/koios-artifacts/tree/main/topology
