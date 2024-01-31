@@ -1,0 +1,39 @@
+version: '3'
+
+services:
+  reverse-proxy:
+    # The official v2 Traefik docker image
+    image: traefik:v2.10
+    # Enables the web UI and tells Traefik to listen to docker
+    command: 
+      - "--api.insecure=true"
+      - "--providers.docker"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--accesslog.filePath=/logs/access.log"
+      - "--providers.docker.network=traefik-net"
+      - "--log.filePath=/logs/traefik.log" 
+    ports:
+      # The HTTP port
+      - "80:80"
+      # The Web UI (enabled by --api.insecure=true)
+      - "8080:8080"
+    volumes:
+      # So that Traefik can listen to the Docker events
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./logs/:/logs/
+    networks:
+      - default
+      - preprod
+      - mainnet
+
+networks:
+  default:
+      name: traefik-net
+  preprod:
+     name: gc-node-preprod_default
+     external: true
+  mainnet:
+     name: gc-node-mainnet_default
+     external: true
