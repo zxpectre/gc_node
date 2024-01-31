@@ -6,22 +6,32 @@ services:
     image: traefik:v2.10
     # Enables the web UI and tells Traefik to listen to docker
     command: 
+      - "--log.level=DEBUG"    
       - "--api.insecure=true"
       - "--providers.docker"
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
       - "--accesslog.filePath=/logs/access.log"
       - "--providers.docker.network=traefik-net"
       - "--log.filePath=/logs/traefik.log" 
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      # - "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.myresolver.acme.email=${EMAIL}"
+
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
     ports:
       # The HTTP port
       - "80:80"
+      - "443:443"
       # The Web UI (enabled by --api.insecure=true)
       - "8080:8080"
     volumes:
       # So that Traefik can listen to the Docker events
       - /var/run/docker.sock:/var/run/docker.sock
+      - "./config/letsencrypt:/letsencrypt"
       - ./logs/:/logs/
     networks:
       - default

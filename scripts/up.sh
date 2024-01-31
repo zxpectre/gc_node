@@ -7,13 +7,14 @@ PROJECT_NAME=gc-node-${NETWORK}
 ./scripts/generate-config.sh "${NETWORK}"
 #CARDANO_NODE_VERSION=8.1.1  # fails with PeerStatusChangeFailure errors on P2P network sync phase at around 55% of sync (seems due to old peers on network)
 
-echo "Initializing $PROJECT_NAME with this params:" &&
-echo "NETWORK	= $NETWORK" &&
-cat docker-${NETWORK}.env
+echo "Initializing $PROJECT_NAME with this params:" 
+echo "NETWORK=$NETWORK" 
+
 
 if [[ $NETWORK == "traefik" ]]; then
-    docker compose -f docker-compose-traefik.yml up -d
+    docker compose -f docker-compose-traefik.yml --env-file docker-preprod.env up -d
 else
+    cat docker-${NETWORK}.env
     docker compose -p $PROJECT_NAME --env-file docker-${NETWORK}.env up -d &&
     docker compose -p $PROJECT_NAME logs -f
 fi
