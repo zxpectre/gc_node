@@ -1,6 +1,7 @@
 build/
 logs/
 
+config/letsencrypt/acme.json
 config/secrets/cardano-db-sync/postgres_password
 config/secrets/cardano-db-sync/pgpass
 docker-mainnet.env
