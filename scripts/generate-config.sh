@@ -33,6 +33,8 @@ echo -n "*:5432:*:cardano-db-sync:${POSTGREST_PASSWORD}" > config/secrets/cardan
 EMAIL=$(<config/user/e-mail)
 EMAIL_SANITIZED=`echo "${EMAIL}" | tr @ _`
 
+DOMAIN=$(<config/user/domain)
+
 cat common.env > docker-preprod.env 
 cat preprod.env >> docker-preprod.env
 echo "POSTGREST_DB=${POSTGREST_DB}" >> docker-preprod.env
@@ -42,7 +44,7 @@ echo "EMAIL=${EMAIL}" >> docker-preprod.env
 echo "EMAIL_SANITIZED=${EMAIL_SANITIZED}" >> docker-preprod.env
 echo "TOKEN_REGISTRY_SCRIPT=${TOKEN_REGISTRY_SCRIPT}" >> docker-preprod.env
 echo "TOKEN_REGISTRY_DEST=${TOKEN_REGISTRY_DEST}" >> docker-preprod.env
-
+echo "DOMAIN=${DOMAIN}" >> docker-preprod.env
 
 cat common.env > docker-mainnet.env 
 cat mainnet.env >> docker-mainnet.env
@@ -53,3 +55,4 @@ echo "EMAIL=${EMAIL}" >> docker-mainnet.env
 echo "EMAIL_SANITIZED=${EMAIL_SANITIZED}" >> docker-mainnet.env
 echo "TOKEN_REGISTRY_SCRIPT=${TOKEN_REGISTRY_SCRIPT}" >> docker-mainnet.env
 echo "TOKEN_REGISTRY_DEST=${TOKEN_REGISTRY_DEST}" >> docker-mainnet.env
+echo "DOMAIN=${DOMAIN}" >> docker-mainnet.env

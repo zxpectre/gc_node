@@ -58,9 +58,8 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=gc-node-${NETWORK}_default"
-      - "traefik.http.routers.ogmios-${NETWORK}.rule=Host(`ogmios.sunflower-${NETWORK}.m2tec.nl`)" 
+      - "traefik.http.routers.ogmios-${NETWORK}.rule=Host(`ogmios-${NETWORK}.${DOMAIN}`)" 
       - "traefik.http.services.ogmios-${NETWORK}.loadbalancer.server.port=1337"  
-      # - "traefik.http.routers.ogmios-${NETWORK}.entrypoints=websecure"
       - "traefik.http.routers.ogmios-${NETWORK}.tls.certresolver=myresolver"          
       - "traefik.http.routers.ogmios-${NETWORK}.tls=true"
     restart: on-failure
@@ -112,7 +111,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=gc-node-${NETWORK}_default"      
-      - "traefik.http.routers.postgrest-${NETWORK}.rule=Host(`postgrest.sunflower-${NETWORK}.m2tec.nl`)"
+      - "traefik.http.routers.postgrest-${NETWORK}.rule=Host(`postgrest-${NETWORK}.${DOMAIN}`)"
       - "traefik.http.services.postgrest-${NETWORK}.loadbalancer.server.port=3000"
       - "traefik.http.routers.postgrest-${NETWORK}.tls.certresolver=myresolver"          
       - "traefik.http.routers.postgrest-${NETWORK}.tls=true"      
@@ -131,7 +130,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=gc-node-${NETWORK}_default"      
-      - "traefik.http.routers.postgrest-gc-${NETWORK}.rule=Host(`postgrest-gc.sunflower-${NETWORK}.m2tec.nl`)"
+      - "traefik.http.routers.postgrest-gc-${NETWORK}.rule=Host(`postgrest-gc-${NETWORK}.${DOMAIN}`)"
       - "traefik.http.services.postgrest-gc-${NETWORK}.loadbalancer.server.port=3000"
       - "traefik.http.routers.postgrest-gc-${NETWORK}.tls.certresolver=myresolver"          
       - "traefik.http.routers.postgrest-gc-${NETWORK}.tls=true"         
@@ -149,13 +148,13 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=gc-node-${NETWORK}_default"      
-      - "traefik.http.routers.swagger-${NETWORK}.rule=Host(`swagger.sunflower-${NETWORK}.m2tec.nl`)"
+      - "traefik.http.routers.swagger-${NETWORK}.rule=Host(`swagger-${NETWORK}.${DOMAIN}`)"
       - "traefik.http.services.swagger-${NETWORK}.loadbalancer.server.port=8080"
       - "traefik.http.routers.swagger-${NETWORK}.tls.certresolver=myresolver"          
       - "traefik.http.routers.swagger-${NETWORK}.tls=true"             
     image: swaggerapi/swagger-ui
     environment:
-        API_URL: "http://postgrest-gc.sunflower-${NETWORK}.m2tec.nl/"
+        API_URL: "http://postgrest-gc-${NETWORK}.${DOMAIN}/"
     depends_on:
       postgres:
         condition: service_healthy
@@ -164,7 +163,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=gc-node-${NETWORK}_default"      
-      - "traefik.http.routers.pgadmin-${NETWORK}.rule=Host(`pgadmin.sunflower-${NETWORK}.m2tec.nl`)"
+      - "traefik.http.routers.pgadmin-${NETWORK}.rule=Host(`pgadmin-${NETWORK}.${DOMAIN}`)"
       - "traefik.http.services.pgadmin-${NETWORK}.loadbalancer.server.port=80"  
       - "traefik.http.routers.pgadmin-${NETWORK}.tls.certresolver=myresolver"          
       - "traefik.http.routers.pgadmin-${NETWORK}.tls=true"                
@@ -202,7 +201,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=gc-node-${NETWORK}_default"       
-      - "traefik.http.routers.token-registry-${NETWORK}.rule=Host(`token-registry.sunflower-${NETWORK}.m2tec.nl`)"
+      - "traefik.http.routers.token-registry-${NETWORK}.rule=Host(`token-registry-${NETWORK}.${DOMAIN}`)"
       - "traefik.http.services.token-registry-${NETWORK}.loadbalancer.server.port=3042"  
       - "traefik.http.routers.token-registry-${NETWORK}.tls.certresolver=myresolver"          
       - "traefik.http.routers.token-registry-${NETWORK}.tls=true"               
@@ -235,7 +234,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=gc-node-${NETWORK}_default"      
-      - "traefik.http.routers.unimatrix-${NETWORK}.rule=Host(`unimatrix.sunflower-${NETWORK}.m2tec.nl`)"
+      - "traefik.http.routers.unimatrix-${NETWORK}.rule=Host(`unimatrix-${NETWORK}.${DOMAIN}`)"
       - "traefik.http.services.unimatrix-${NETWORK}.loadbalancer.server.port=8765" 
       - "traefik.http.routers.unimatrix-${NETWORK}.tls.certresolver=myresolver"          
       - "traefik.http.routers.unimatrix-${NETWORK}.tls=true"               
