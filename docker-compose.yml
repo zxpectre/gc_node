@@ -15,7 +15,6 @@ services:
       - postgres_db
     ports:
       - target: 5432
-        published: ${POSTGRES_PORT:-5432}
     volumes:
       - postgres:/var/lib/postgresql/data
     restart: on-failure
@@ -114,8 +113,6 @@ services:
       - "traefik.docker.network=gc-node-${NETWORK}_default"      
       - "traefik.http.routers.postgrest-${NETWORK}.rule=Host(`postgrest.sunflower-${NETWORK}.m2tec.nl`)"
       - "traefik.http.services.postgrest-${NETWORK}.loadbalancer.server.port=3000"
-    # ports:
-    #   - ${POSTGREST_PORT:-3000}:3000
     environment:
       PGRST_DB_URI: postgres://${POSTGREST_USER}:${POSTGREST_PASSWORD}@${POSTGRES_HOST}:5432/${POSTGREST_DB}
       PGRST_DB_SCHEMA: public
@@ -133,8 +130,6 @@ services:
       - "traefik.docker.network=gc-node-${NETWORK}_default"      
       - "traefik.http.routers.postgrest-gc-${NETWORK}.rule=Host(`postgrest-gc.sunflower-${NETWORK}.m2tec.nl`)"
       - "traefik.http.services.postgrest-gc-${NETWORK}.loadbalancer.server.port=3000"
-    # ports:
-    #   - ${POSTGREST_GC_PORT:-3000}:3000
     environment:
       PGRST_DB_URI: postgres://${POSTGREST_USER}:${POSTGREST_PASSWORD}@${POSTGRES_HOST}:5432/${POSTGREST_DB}
       PGRST_DB_SCHEMA: gamechanger
@@ -152,12 +147,8 @@ services:
       - "traefik.http.routers.swagger-${NETWORK}.rule=Host(`swagger.sunflower-${NETWORK}.m2tec.nl`)"
       - "traefik.http.services.swagger-${NETWORK}.loadbalancer.server.port=8080"
     image: swaggerapi/swagger-ui
-    # ports:
-    #     - ${SWAGGER_PORT:-8080}:8080
-    # expose:
-    #     - "8080"
     environment:
-        API_URL: http://localhost:${POSTGREST_PORT}/
+        API_URL: "http://postgrest-gc.sunflower-${NETWORK}.m2tec.nl/"
     depends_on:
       postgres:
         condition: service_healthy
@@ -186,8 +177,6 @@ services:
       chmod 600 /var/lib/pgadmin/storage/${EMAIL_SANITIZED}/pgpass;
       /entrypoint.sh;
       "
-    # ports:
-    #   - "${PGADMIN_PORT:-5050}:80"
     links:
       - "postgres:pgsql-server"
     volumes:
@@ -207,8 +196,6 @@ services:
       - "traefik.http.routers.token-registry-${NETWORK}.rule=Host(`token-registry.sunflower-${NETWORK}.m2tec.nl`)"
       - "traefik.http.services.token-registry-${NETWORK}.loadbalancer.server.port=3042"         
     restart: always
-    # ports:
-    #   - ${TOKEN_REGISTRY_PORT:-3042}:3042
     volumes:
       - token-registry-data:/app/cardano-token-registry
     depends_on:
@@ -242,8 +229,6 @@ services:
     build:
       context: ./src/unimatrix
     restart: always
-    # ports:
-    #   - ${UNIMATRIX_PORT:-8765}:8765
     # TODO: fix env vars passing and link to persistent volume
     volumes:
       - unimatrix-data:/work/data
@@ -270,8 +255,3 @@ volumes:
   pgadmin-data:
   token-registry-data:
   unimatrix-data:
-
-# networks:
-#   default:
-#       name: traefik-net
-#       external: true
