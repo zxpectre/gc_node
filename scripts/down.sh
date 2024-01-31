@@ -6,4 +6,8 @@ fi &&
 export NETWORK=$1 &&\
 export PROJECT_NAME=gc-node-${NETWORK} &&\
 
-docker compose -p ${PROJECT_NAME} down
+if [[ $NETWORK == "traefik" ]]; then
+    docker compose -f docker-compose-traefik.yml  down
+else
+    docker compose -p ${PROJECT_NAME} down
+fi

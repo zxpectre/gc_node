@@ -11,5 +11,9 @@ echo "Initializing $PROJECT_NAME with this params:" &&
 echo "NETWORK	= $NETWORK" &&
 cat docker-${NETWORK}.env
 
-docker compose -p $PROJECT_NAME --env-file docker-${NETWORK}.env up -d &&
-docker compose -p $PROJECT_NAME logs -f
+if [[ $NETWORK == "traefik" ]]; then
+    docker compose -f docker-compose-traefik.yml up -d
+else
+    docker compose -p $PROJECT_NAME --env-file docker-${NETWORK}.env up -d &&
+    docker compose -p $PROJECT_NAME logs -f
+fi

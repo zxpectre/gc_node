@@ -1,4 +1,5 @@
 build/
+logs/
 
 config/secrets/cardano-db-sync/postgres_password
 config/secrets/cardano-db-sync/pgpass

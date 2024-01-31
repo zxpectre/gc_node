@@ -69,8 +69,6 @@ services:
     volumes:
       - ./config/network/${NETWORK:-mainnet}:/config
       - node-ipc:/ipc
-    ports:
-      - ${OGMIOS_PORT:-1337}:1337
     depends_on:
       cardano-node:
         condition: service_healthy
