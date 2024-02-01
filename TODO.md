@@ -27,7 +27,7 @@
 ### Ogmios
 - [ ] Fix error preventing ogmios container to start. In logs: `Failed to decode JSON (or YAML) file: InvalidYaml (Just (YamlException "Yaml file not found: /opt/cardano/cnode/files/byron-genesis.json"))`. 
 Solution: make the exported config files from cardano-node accessible to ogmios. 
-- Check that if formatting issues appear with this config files, make ogmios version match cardano-node version
+- [ ] Check that if formatting issues appear with this config files, make ogmios version match cardano-node version
 
 ### Unimatrix
 - [ ] Check that UNIMATRIX_PORT is reaching the js file properly
