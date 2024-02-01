@@ -17,6 +17,7 @@ services:
       - target: 5432
     volumes:
       - postgres:/var/lib/postgresql/data
+      # - ./src/postgres/:/docker-entrypoint-initdb.d/ #TEST! load koios sql scripts on init
     restart: on-failure
     healthcheck:
       # Use pg_isready to check postgres is running. Substitute different
@@ -136,7 +137,7 @@ services:
       - "traefik.http.routers.postgrest-gc-${NETWORK}.tls=true"         
     environment:
       PGRST_DB_URI: postgres://${POSTGREST_USER}:${POSTGREST_PASSWORD}@${POSTGRES_HOST}:5432/${POSTGREST_DB}
-      PGRST_DB_SCHEMA: gamechanger
+      PGRST_DB_SCHEMA: "gamechanger, public"
       #IMPORTANT: In production this role should not be the same as the one used for the connection:
       PGRST_DB_ANON_ROLE: ${POSTGREST_USER}
       PGRST_SERVER_PROXY_URI: "http://127.0.0.1:3000"
@@ -154,7 +155,7 @@ services:
       - "traefik.http.routers.swagger-${NETWORK}.tls=true"             
     image: swaggerapi/swagger-ui
     environment:
-        API_URL: "http://postgrest-gc-${NETWORK}.${DOMAIN}/"
+        API_URL: "https://postgrest-gc-${NETWORK}.${DOMAIN}/"
     depends_on:
       postgres:
         condition: service_healthy

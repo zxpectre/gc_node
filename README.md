@@ -37,11 +37,12 @@ Set your domain name
 
 ## Traefik
 
-Start outside interned access. 
-Maker sure you have set the correct ip-address to your computer from your domain and open ports 80 and 443
-Uncomment this line in docker-compose-traefik.yml to first test your setup. Otherwise you can hit a rate limit on letsencrypt. If you made a 
-misconfiguration somewhere 
+Start outside interned access.Maker sure you have set the correct ip-address to your computer from your domain and open ports 80 and 443
+Uncomment this line in docker-compose-traefik.yml to first test your letsencrypt setup. 
+
 # - "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+
+Otherwise you can hit a rate limit on letsencrypt. If you made a misconfiguration somewhere 
 
 ./scripts/up.sh traefik
 
