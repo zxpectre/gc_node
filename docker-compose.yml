@@ -1,67 +1,85 @@
-version: "3.9"
+version: '3'
 
+name: "${PROJ_NAME}"
 services:
-  postgres:
-    image: postgres:11.18-alpine
+  cardano-node:
+    image: cardanocommunity/cardano-node:latest
+    init: true
+    hostname: cardano-node
     environment:
-      - POSTGRES_LOGGING=true
-      - POSTGRES_DB_FILE=/run/secrets/postgres_db
-      - POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password
-      - POSTGRES_USER_FILE=/run/secrets/postgres_user
-    secrets:
-      - postgres_password
-      - postgres_user
-      - postgres_db
-    ports:
-      - ${POSTGRES_PORT:-5432}:5432
+      NETWORK: ${NETWORK}
+      SOCKET: "${CNODE_HOME}/sockets/node.socket" 
+      UPDATE_CHECK: "N"
     volumes:
-      - postgres:/var/lib/postgresql/data
+      - node-db:/opt/cardano/cnode/db
+      - node-ipc:/opt/cardano/cnode/sockets
+      - node-cfg:/opt/cardano/cnode/priv/files
+      - ./scripts/:/scripts/
+    entrypoint: >
+      /bin/sh -c "
+      echo 'Exporting node config files into node-cfg volume...' ;
+      cp /opt/cardano/cnode/files/* /opt/cardano/cnode/priv/files/* ;
+      ./entrypoint.sh ;
+      "
     restart: on-failure
     healthcheck:
-      # Use pg_isready to check postgres is running. Substitute different
-      # user `postgres` if you've setup differently to config/pgpass-mainnet
-      test: ["CMD-SHELL", "pg_isready -U cardano-db-sync -d cardano-db-sync"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    command: ${POSTGRES_ARGS:--c maintenance_work_mem=1GB -c max_parallel_maintenance_workers=4}
+      test: ["CMD-SHELL", "netstat -ntlp | grep 12798"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     logging:
       driver: "json-file"
       options:
         max-size: "200k"
         max-file: "10"
 
-  cardano-node:
-    image: inputoutput/cardano-node:${CARDANO_NODE_VERSION:-8.0.0}
+  cardano-db-sync:
+    image: ghcr.io/intersectmbo/cardano-db-sync:sancho-3-0-0
+    hostname: cardano-db-sync
     environment:
-      - NETWORK=${NETWORK:-mainnet}
-    volumes:
-      - node-db:/data/db
-      - node-ipc:/ipc
-    restart: on-failure
+      DISABLE_LEDGER: ${DISABLE_LEDGER}
+      NETWORK: ${NETWORK:-mainnet}
+      POSTGRES_HOST: postgress
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      RESTORE_SNAPSHOT: ${RESTORE_SNAPSHOT:-}
+      RESTORE_RECREATE_DB: N
+      EXTRA_DB_SYNC_ARGS: ${EXTRA_DB_SYNC_ARGS:-}
     healthcheck:
-      # Ping the EKG port to see if it responds.
-      # Assuming if EKG isn't up then the rest of cardano-node isn't either.
-      test: ["CMD-SHELL", "curl -f 127.0.0.1:12788 || exit 1"]
+      test: ["CMD-SHELL", "/scripts/lib/dbsync_healthcheck.sh"]
       interval: 60s
       timeout: 10s
-      retries: 5
+    depends_on:
+      # Depend on both services to be healthy before starting.
+      cardano-node:
+        condition: service_healthy
+      postgress:
+        condition: service_healthy
+    volumes:
+      - db-sync-data:/var/lib/cexplorer
+      - node-ipc:/node-ipc
+      - ./scripts/:/scripts/
+    restart: on-failure
     logging:
       driver: "json-file"
       options:
         max-size: "200k"
         max-file: "10"
 
+  # TODO: add http backend ogmios and it's entry on /configs/haproxy/haproxy.cfg
   ogmios:
     image: cardanosolutions/ogmios:${OGMIOS_VERSION:-latest}
     restart: on-failure
     command: [
       "--host", "0.0.0.0",
       "--node-socket", "/ipc/node.socket",
-      "--node-config", "/config/cardano-node/config.json"
+      "--node-config", "/opt/cardano/cnode/files/config.json"
     ]
     volumes:
-      - ./config/network/${NETWORK:-mainnet}:/config
+      # exported automagically from cardano-node
+      - node-cfg:/opt/cardano/cnode/files/
       - node-ipc:/ipc
     ports:
       - ${OGMIOS_PORT:-1337}:1337
@@ -70,120 +88,58 @@ services:
         condition: service_healthy
 
 
-  cardano-db-sync:
-    image: inputoutput/cardano-db-sync:${CARDANO_DB_SYNC_VERSION:-13.1.1.3}
-    environment:
-      - NETWORK=${NETWORK:-mainnet}
-      - POSTGRES_HOST=postgres
-      - POSTGRES_PORT=5432
-      - RESTORE_SNAPSHOT=${RESTORE_SNAPSHOT:-}
-      - RESTORE_RECREATE_DB=N
-      - EXTRA_DB_SYNC_ARGS=${EXTRA_DB_SYNC_ARGS:-}
-    depends_on:
-      # Depend on both services to be healthy before starting.
-      cardano-node:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
-    secrets:
-      - postgres_password
-      - postgres_user
-      - postgres_db
+  postgress:
+    image: postgres:16.1-bullseye
+    hostname: postgress
     volumes:
-      - db-sync-data:/var/lib/cexplorer
-      - node-ipc:/node-ipc
+      - postgresdb:/var/lib/postgresql/data
+      - ./scripts/:/scripts/
+    # ports:
+    #   - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+      RPC_SCHEMA: ${RPC_SCHEMA}
+    healthcheck:
+      test:  ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 60s
+      timeout: 5s
+    command: postgres -c max_connections=200 -c wal_level=minimal -c max_wal_senders=0 -c synchronous_commit=off
     restart: on-failure
     logging:
       driver: "json-file"
       options:
         max-size: "200k"
         max-file: "10"
-    # snapshots provided by RESTORE_SNAPSHOT env var will be downloaded to the working dir
-    working_dir: /var/lib/cexplorer
 
   postgrest:
-    image: postgrest/postgrest
-    ports:
-      - "3000:3000"
-    links:
-      - postgres:db_host
-    environment:
-      PGRST_DB_URI: postgres://${POSTGREST_USER}:${POSTGREST_PASSWORD}@db_host/${POSTGREST_DB}
-      PGRST_DB_SCHEMA: public
-      #IMPORTANT: In production this role should not be the same as the one used for the connection:
-      PGRST_DB_ANON_ROLE: ${POSTGREST_USER}
-      PGRST_SERVER_PROXY_URI: "http://127.0.0.1:3000"
+    image: postgrest/postgrest:v12.0.2
+    hostname: postgrest
     depends_on:
-      postgres:
-        condition: service_healthy
-
-  swagger:
-    image: swaggerapi/swagger-ui
+      - postgress
     ports:
-        - "8080:8080"
-    expose:
-        - "8080"
-    environment:
-        API_URL: http://external_postgrest_ip:3000/
-    depends_on:
-      postgres:
-        condition: service_healthy
-
-
-  pgadmin:
-    container_name: pgadmin4
-    image: dpage/pgadmin4
-    restart: always
-    environment:
-        PGADMIN_DEFAULT_EMAIL: zxpectre@gamechanger.finance
-        PGADMIN_DEFAULT_PASSWORD: 12345678
-        PGADMIN_LISTEN_PORT: 80
-    ports:
-        - "5050:80"
-    links:
-        - "postgres:pgsql-server"
+      - 8050:8050
     volumes:
-        - pgadmin-data:/var/lib/pgadmin
-    depends_on:
-      postgres:
-        condition: service_healthy
-
-  token-registry:
-    image:  gimbalabs/dbless-cardano-token-registry:latest
-    restart: always
+      - ./scripts/:/scripts/
     environment:
-      - TOKEN_REGISTRY_MAPPINGS_DIR:${TOKEN_REGISTRY_MAPPINGS_DIR:-/app/cardano-token-registry/mappings}
-    ports:
-      - "3042:3042"
-    volumes:
-      - token-registry-data:/app/cardano-token-registry
-    depends_on:
-      token-registry-updater:
-        condition: service_healthy
+      PGRST_DB_URI: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgress:${POSTGRES_PORT}/${POSTGRES_DB}
+      PGRST_DB_ANON_ROLE: ${PGRST_DB_ANON_ROLE}
+      #PGRST_DB_SCHEMA: ${RPC_SCHEMA}
+      PGRST_DB_SCHEMAS: "${RPC_SCHEMA}, public, pg_catalog" # first one is default
+      PGRST_SERVER_PORT: 8050
+      PGRST_OPENAPI_SERVER_PROXY_URI: http://0.0.0.0:8050
+      PGRST_DB_MAX_ROWS: 1000
+      PGRST_DB_AGGREGATES_ENABLED: true
+      PGRST_DB_EXTRA_SEARCH_PATH: "${RPC_SCHEMA}, public"
+    restart: on-failure
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
 
-  token-registry-updater:
-    image: alpine/git
-    entrypoint: sh
-    restart: always
-    # due to weird entrypoint issues, below env vars are not reaching command line, so pass them on docker-compose call 
-    environment:
-      TOKEN_REGISTRY_GIT_REPO: ${TOKEN_REGISTRY_GIT_REPO:-https://github.com/cardano-foundation/cardano-token-registry}
-      TOKEN_REGISTRY_GIT_BRANCH: ${TOKEN_REGISTRY_GIT_BRANCH:-master}
-      TOKEN_REGISTRY_DEST: ${TOKEN_REGISTRY_DEST:-/app/cardano-token-registry}
-      TOKEN_REGISTRY_SYNC_INTERVAL: ${TOKEN_REGISTRY_SYNC_INTERVAL:-3600}
-    volumes:
-      -  token-registry-data:/app/cardano-token-registry
-    command: [
-      "-c",
-      "echo 'Token Registry will be updated from ${TOKEN_REGISTRY_GIT_REPO}:${TOKEN_REGISTRY_GIT_BRANCH} into ${TOKEN_REGISTRY_DEST} each ${TOKEN_REGISTRY_SYNC_INTERVAL} seconds...' && while true; do if [ ! -e ${TOKEN_REGISTRY_DEST}/.git ]; then git clone ${TOKEN_REGISTRY_GIT_REPO} ${TOKEN_REGISTRY_DEST}; fi; cd ${TOKEN_REGISTRY_DEST} && git reset && git checkout ${TOKEN_REGISTRY_GIT_BRANCH} && git pull; sleep ${TOKEN_REGISTRY_SYNC_INTERVAL}; done"
-    ]
-    healthcheck:
-      test: ["CMD-SHELL","-c", "[ -d $TOKEN_REGISTRY_DEST ] && exit 0"]
-      interval: 30s
-      timeout: 10s
-      retries: 1000
-
-  unimatrix-peer:
+  unimatrix:
     image: unimatrix-peer:latest
     build:
       context: ./src/unimatrix
@@ -197,19 +153,131 @@ services:
     volumes:
       - unimatrix-data:/work/data
 
-secrets:
-  postgres_db:
-    file: ./config/secrets/cardano-db-sync/postgres_db
-  postgres_password:
-    file: ./config/secrets/cardano-db-sync/postgres_password
-  postgres_user:
-    file: ./config/secrets/cardano-db-sync/postgres_user
+
+  portainer-agent:
+    image: portainer/agent:latest
+    environment:
+      AGENT_CLUSTER_ADDR: portainer-agent
+      AGENT_PORT: 9001
+      LOG_LEVEL: DEBUG
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/volumes:/var/lib/docker/volumes
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    command: -H tcp://portainer-agent:9001 --tlsskipverify
+    ports:
+      - 9443:9443
+      - 8000:8000
+    volumes:
+      - portainer-data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+    depends_on:
+      - portainer-agent
+
+  # Develpoment and Testing
+  swagger:
+    image: swaggerapi/swagger-ui
+    ports:
+      - "8080:8080"
+    expose:
+      - "8080"
+    environment:
+      API_URL: http://127.0.0.1:8050/
+
+
+
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+        PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+        PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+        PGADMIN_LISTEN_PORT: 80
+    ports:
+        - "${PGADMIN_LISTEN_PORT:-5050}:80"
+    links:
+        - "postgress:pgsql-server"
+    volumes:
+        - pgadmin-data:/var/lib/pgadmin
+    # not supported until docker compose 2.23.1
+    # configs:
+    #   - source: pgadmin_server
+    #     target: /var/lib/pgadmin/servers.json
+    entrypoint: >
+      /bin/sh -c "
+      EMAIL_SANITIZED=$$(echo \"$PGADMIN_DEFAULT_EMAIL\" | tr @ _)
+      mkdir -p /var/lib/pgadmin/storage/${EMAIL_SANITIZED} ;
+      PGADMIN_SERVER_JSON_FILE=/var/lib/pgadmin/storage/servers.json ;
+      PGADMIN_PASSWORD_FILE=/var/lib/pgadmin/storage/${EMAIL_SANITIZED}/pgpass ;
+      rm -rf $$PGADMIN_PASSWORD_FILE ;
+      rm -rf $$PGADMIN_SERVER_JSON_FILE ;
+      echo '${PGADMIN_DEFAULT_PASSWORD}' > $$PGADMIN_PASSWORD_FILE ;
+      echo '{\"Servers\": {\"1\": { \"Group\": \"Servers\", \"Name\": \"${NETWORK}\", \"Host\": \"${PROJ_NAME}-postgres-1\", \"Port\": ${POSTGRES_PORT}, \"MaintenanceDB\": \"${POSTGRES_DB}\",  \"Username\": \"${POSTGRES_USER}\",  \"ConnectionParameters\": {  \"sslmode\": \"prefer\", \"connect_timeout\": 10, \"passfile\": \"/var/lib/pgadmin/storage/$EMAIL_SANITIZED/pgpass\" } }}}' > $$PGADMIN_SERVER_JSON_FILE ;
+      chmod 600 $$PGADMIN_PASSWORD_FILE ;
+      chmod 600 $$PGADMIN_SERVER_JSON_FILE ;
+      echo 'Default Config file' ;
+      cat $$PGADMIN_SERVER_JSON_FILE ;
+      PGADMIN_SERVER_JSON_FILE=$$PGADMIN_SERVER_JSON_FILE /entrypoint.sh;
+      "
+    depends_on:
+      postgress:
+        condition: service_healthy
+
+
+  haproxy:
+    image: haproxy:2.9.0-bookworm
+    hostname: haproxy
+    depends_on:
+      - postgrest
+    volumes:
+      - ./configs/haproxy/:/usr/local/etc/haproxy/
+      - ./scripts/:/scripts/
+    ports:
+      - 8053:8053
+    healthcheck:
+      test: ["CMD-SHELL", "haproxy -c -- /usr/local/etc/haproxy/haproxy.cfg"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: on-failure
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
+
+  cron:
+    build: .
+    environment:
+      NETWORK: ${NETWORK:-mainnet}
+      POSTGRES_HOST: postgress
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      PGDATABASE: ${POSTGRES_DB}
+      PGUSER: ${POSTGRES_USER}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      RPC_SCHEMA: ${RPC_SCHEMA}
+    volumes:
+      - ./scripts/cron:/etc/cron.d/
+      - ./scripts:/scripts
+    # Uncomment for persistent logs
+    # - ./logs:/var/log
+    restart: unless-stopped
+
+# not supported until docker compose 2.23.1
+# configs:
+#   pgadmin_server:
+#     environment: PGADMIN_SERVER
+#     content: '{"Servers": {"1": { "Group": "Servers", "Name": "${NETWORK}", "Host": "${PROJ_NAME}-postgres-1", "Port": ${POSTGRES_PORT}, "MaintenanceDB": "${POSTGRES_DB}",  "Username": ${POSTGRES_USER},  "ConnectionParameters": {  "sslmode": "prefer", "connect_timeout": 10, "passfile": "/pgpass" } }}}'
 
 volumes:
-  db-sync-data:
-  postgres:
   node-db:
   node-ipc:
+  node-cfg:
+  db-sync-data:
+  postgresdb:
+  portainer-data:
   pgadmin-data:
-  token-registry-data:
   unimatrix-data:
