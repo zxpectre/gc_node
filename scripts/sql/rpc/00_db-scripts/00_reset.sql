@@ -1,2 +1,0 @@
--- Recreate {{SCHEMA}} schema
-DROP SCHEMA IF EXISTS {{SCHEMA}} CASCADE;

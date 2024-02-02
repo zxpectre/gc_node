@@ -1,4 +1,7 @@
+build/
+tmp/
 .env
+*.env
 .*status
 .dependency_installation_status
 *.swp
