@@ -1,10 +1,10 @@
-Database: kl
+Database: koioslite
   Table: tablename
     Index: indexname
     Index: -----------
     Index: (0
     Index: rows)
-  Table: ------------------------------
+  Table: ----------------------------
     Index: indexname
     Index: -----------
     Index: (0
@@ -13,69 +13,70 @@ Database: kl
     Index: indexname
     Index: ---------------------
     Index: schema_version_pkey
-  Table: pool_metadata_ref
-    Index: indexname
-    Index: ----------------------------------------
-    Index: pool_metadata_ref_pkey
-    Index: unique_pool_metadata_ref
-    Index: idx_pool_metadata_ref_pool_id
-    Index: idx_pool_metadata_ref_registered_tx_id
+    Index: (1
+    Index: row)
   Table: pool_update
     Index: indexname
-    Index: ----------------------------------
+    Index: --------------------
     Index: pool_update_pkey
-    Index: idx_pool_update_hash_id
-    Index: idx_pool_update_registered_tx_id
-    Index: idx_pool_update_meta_id
-    Index: idx_pool_update_reward_addr
-    Index: idx_pool_update_active_epoch_no
-    Index: (6
+    Index: unique_pool_update
+    Index: (2
     Index: rows)
   Table: pool_retire
     Index: indexname
-    Index: ---------------------------------
+    Index: ----------------------
     Index: pool_retire_pkey
-    Index: idx_pool_retire_hash_id
-    Index: idx_pool_retire_announced_tx_id
+    Index: unique_pool_retiring
+    Index: (2
+    Index: rows)
   Table: pool_owner
     Index: indexname
-    Index: -------------------------------
+    Index: -------------------
     Index: pool_owner_pkey
-    Index: pool_owner_pool_update_id_idx
+    Index: unique_pool_owner
+    Index: (2
+    Index: rows)
   Table: pool_relay
     Index: indexname
-    Index: --------------------------
+    Index: -------------------
     Index: pool_relay_pkey
-    Index: idx_pool_relay_update_id
+    Index: unique_pool_relay
+    Index: (2
+    Index: rows)
   Table: stake_registration
     Index: indexname
-    Index: --------------------------------
+    Index: ---------------------------
     Index: stake_registration_pkey
-    Index: idx_stake_registration_tx_id
-    Index: idx_stake_registration_addr_id
+    Index: unique_stake_registration
+    Index: (2
+    Index: rows)
+  Table: stake_deregistration
+    Index: indexname
+    Index: -----------------------------
+    Index: stake_deregistration_pkey
+    Index: unique_stake_deregistration
+    Index: (2
+    Index: rows)
   Table: pool_hash
     Index: indexname
     Index: ------------------
     Index: pool_hash_pkey
     Index: unique_pool_hash
+    Index: (2
+    Index: rows)
   Table: slot_leader
     Index: indexname
-    Index: ------------------------------
+    Index: --------------------
     Index: slot_leader_pkey
     Index: unique_slot_leader
-    Index: idx_slot_leader_pool_hash_id
-  Table: block
+    Index: (2
+    Index: rows)
+  Table: stake_address
     Index: indexname
-    Index: --------------------------
-    Index: block_pkey
-    Index: unique_block
-    Index: idx_block_slot_no
-    Index: idx_block_block_no
-    Index: idx_block_epoch_no
-    Index: idx_block_previous_id
-    Index: idx_block_time
-    Index: idx_block_slot_leader_id
-    Index: (8
+    Index: ----------------------
+    Index: stake_address_pkey
+    Index: unique_stake_address
+    Index: (2
     Index: rows)
   Table: tx
     Index: indexname
@@ -83,294 +84,390 @@ Database: kl
     Index: tx_pkey
     Index: unique_tx
     Index: idx_tx_block_id
-  Table: stake_address
+    Index: idx_tx_hash
+    Index: (4
+    Index: rows)
+  Table: block
     Index: indexname
-    Index: ----------------------------
-    Index: stake_address_pkey
-    Index: unique_stake_address
-    Index: idx_stake_address_hash_raw
-    Index: idx_stake_address_view
+    Index: -----------------------
+    Index: block_pkey
+    Index: unique_block
+    Index: idx_block_slot_no
+    Index: idx_block_block_no
+    Index: idx_block_epoch_no
+    Index: idx_block_previous_id
+    Index: idx_block_hash
+    Index: (7
+    Index: rows)
   Table: tx_out
     Index: indexname
-    Index: --------------------------------
+    Index: ------------------------------
     Index: tx_out_pkey
     Index: unique_txout
     Index: idx_tx_out_consumed_by_tx_id
-    Index: idx_tx_out_address
-    Index: idx_tx_out_payment_cred
-    Index: idx_tx_out_tx_id
-    Index: idx_tx_out_stake_address_id
-    Index: tx_out_inline_datum_id_idx
-    Index: tx_out_reference_script_id_idx
-    Index: (9
+    Index: (3
     Index: rows)
-  Table: redeemer
-    Index: indexname
-    Index: -------------------------------
-    Index: redeemer_pkey
-    Index: redeemer_redeemer_data_id_idx
-  Table: datum
-    Index: indexname
-    Index: -----------------
-    Index: datum_pkey
-    Index: unique_datum
-    Index: idx_datum_tx_id
-  Table: tx_in
-    Index: indexname
-    Index: -----------------------
-    Index: tx_in_pkey
-    Index: idx_tx_in_tx_in_id
-    Index: idx_tx_in_tx_out_id
-    Index: idx_tx_in_redeemer_id
-  Table: collateral_tx_in
-    Index: indexname
-    Index: --------------------------------
-    Index: collateral_tx_in_pkey
-    Index: idx_collateral_tx_in_tx_out_id
-  Table: epoch
-    Index: indexname
-    Index: --------------
-    Index: epoch_pkey
-    Index: unique_epoch
-    Index: idx_epoch_no
   Table: meta
     Index: indexname
     Index: -------------
     Index: meta_pkey
     Index: unique_meta
+    Index: (2
+    Index: rows)
+  Table: datum
+    Index: indexname
+    Index: --------------
+    Index: datum_pkey
+    Index: unique_datum
+    Index: (2
+    Index: rows)
+  Table: tx_in
+    Index: indexname
+    Index: ------------------------
+    Index: tx_in_pkey
+    Index: idx_tx_in_consuming_tx
+    Index: unique_txin
+    Index: (3
+    Index: rows)
+  Table: collateral_tx_in
+    Index: indexname
+    Index: -------------------------------
+    Index: collateral_tx_in_pkey
+    Index: unique_col_txin
+    Index: idx_collateral_tx_in_tx_in_id
+    Index: (3
+    Index: rows)
+  Table: redeemer
+    Index: indexname
+    Index: -----------------
+    Index: redeemer_pkey
+    Index: unique_redeemer
+    Index: (2
+    Index: rows)
+  Table: epoch
+    Index: indexname
+    Index: --------------
+    Index: epoch_pkey
+    Index: unique_epoch
+    Index: (2
+    Index: rows)
   Table: ada_pots
     Index: indexname
-    Index: ---------------
+    Index: -----------------
     Index: ada_pots_pkey
-  Table: stake_deregistration
+    Index: unique_ada_pots
+    Index: (2
+    Index: rows)
+  Table: pool_metadata_ref
     Index: indexname
-    Index: --------------------------------------
-    Index: stake_deregistration_pkey
-    Index: idx_stake_deregistration_tx_id
-    Index: idx_stake_deregistration_addr_id
-    Index: idx_stake_deregistration_redeemer_id
+    Index: -------------------------------
+    Index: pool_metadata_ref_pkey
+    Index: unique_pool_metadata_ref
+    Index: idx_pool_metadata_ref_pool_id
+    Index: (3
+    Index: rows)
   Table: delegation
     Index: indexname
-    Index: --------------------------------
+    Index: -------------------
     Index: delegation_pkey
-    Index: idx_delegation_pool_hash_id
-    Index: idx_delegation_tx_id
-    Index: idx_delegation_addr_id
-    Index: idx_delegation_active_epoch_no
-    Index: idx_delegation_redeemer_id
-    Index: (6
+    Index: unique_delegation
+    Index: (2
     Index: rows)
   Table: tx_metadata
     Index: indexname
-    Index: -----------------------
+    Index: --------------------
     Index: tx_metadata_pkey
-    Index: idx_tx_metadata_tx_id
+    Index: unique_tx_metadata
+    Index: (2
+    Index: rows)
   Table: reward
     Index: indexname
     Index: ----------------------------
     Index: reward_pkey
     Index: idx_reward_spendable_epoch
     Index: unique_reward
-    Index: idx_reward_pool_id
-    Index: idx_reward_earned_epoch
-    Index: idx_reward_addr_id
-    Index: (6
+    Index: idx_reward_type
+    Index: (4
     Index: rows)
   Table: withdrawal
     Index: indexname
-    Index: ----------------------------
+    Index: -------------------
     Index: withdrawal_pkey
-    Index: idx_withdrawal_tx_id
-    Index: idx_withdrawal_addr_id
-    Index: idx_withdrawal_redeemer_id
+    Index: unique_withdrawal
+    Index: (2
+    Index: rows)
   Table: epoch_stake
     Index: indexname
     Index: --------------------------
     Index: epoch_stake_pkey
     Index: idx_epoch_stake_epoch_no
-    Index: unique_epoch_stake
-    Index: idx_epoch_stake_pool_id
-    Index: idx_epoch_stake_addr_id
-    Index: (5
+    Index: (2
     Index: rows)
   Table: treasury
     Index: indexname
-    Index: ----------------------
+    Index: -----------------
     Index: treasury_pkey
-    Index: idx_treasury_tx_id
-    Index: idx_treasury_addr_id
-  Table: ma_tx_mint
-    Index: indexname
-    Index: ----------------------
-    Index: ma_tx_mint_pkey
-    Index: idx_ma_tx_mint_tx_id
+    Index: unique_treasury
+    Index: (2
+    Index: rows)
   Table: reserve
     Index: indexname
-    Index: ---------------------
+    Index: -----------------
     Index: reserve_pkey
-    Index: idx_reserve_tx_id
-    Index: idx_reserve_addr_id
-  Table: ma_tx_out
-    Index: indexname
-    Index: -------------------------
-    Index: ma_tx_out_pkey
-    Index: idx_ma_tx_out_tx_out_id
-  Table: pot_transfer
+    Index: unique_reserves
+    Index: (2
+    Index: rows)
+  Table: ma_tx_mint
     Index: indexname
     Index: -------------------
+    Index: ma_tx_mint_pkey
+    Index: unique_ma_tx_mint
+    Index: (2
+    Index: rows)
+  Table: pot_transfer
+    Index: indexname
+    Index: ---------------------
     Index: pot_transfer_pkey
+    Index: unique_pot_transfer
+    Index: (2
+    Index: rows)
   Table: epoch_sync_time
     Index: indexname
     Index: ------------------------
     Index: epoch_sync_time_pkey
     Index: unique_epoch_sync_time
+    Index: (2
+    Index: rows)
+  Table: ma_tx_out
+    Index: indexname
+    Index: ---------------------
+    Index: ma_tx_out_pkey
+    Index: unique_ma_tx_out
+    Index: idx_ma_tx_out_ident
+    Index: (3
+    Index: rows)
   Table: script
     Index: indexname
-    Index: ------------------
+    Index: ---------------
     Index: script_pkey
     Index: unique_script
-    Index: idx_script_tx_id
+    Index: (2
+    Index: rows)
   Table: off_chain_pool_data
     Index: indexname
     Index: --------------------------------
     Index: off_chain_pool_data_pkey
     Index: unique_off_chain_pool_data
     Index: idx_off_chain_pool_data_pmr_id
+    Index: (3
+    Index: rows)
   Table: cost_model
     Index: indexname
     Index: -------------------
     Index: cost_model_pkey
     Index: unique_cost_model
+    Index: (2
+    Index: rows)
   Table: off_chain_pool_fetch_error
     Index: indexname
     Index: ---------------------------------------
     Index: off_chain_pool_fetch_error_pkey
     Index: unique_off_chain_pool_fetch_error
     Index: idx_off_chain_pool_fetch_error_pmr_id
+    Index: (3
+    Index: rows)
   Table: multi_asset
     Index: indexname
-    Index: --------------------
+    Index: ------------------------
     Index: multi_asset_pkey
     Index: unique_multi_asset
+    Index: idx_multi_asset_name
+    Index: idx_multi_asset_policy
+    Index: (4
+    Index: rows)
   Table: delisted_pool
     Index: indexname
     Index: ----------------------
     Index: delisted_pool_pkey
     Index: unique_delisted_pool
-  Table: extra_key_witness
-    Index: indexname
-    Index: -----------------------------
-    Index: extra_key_witness_pkey
-    Index: idx_extra_key_witness_tx_id
+    Index: (2
+    Index: rows)
   Table: reserved_pool_ticker
     Index: indexname
-    Index: ------------------------------------
+    Index: -----------------------------
     Index: reserved_pool_ticker_pkey
     Index: unique_reserved_pool_ticker
-    Index: idx_reserved_pool_ticker_pool_hash
+    Index: (2
+    Index: rows)
+  Table: extra_key_witness
+    Index: indexname
+    Index: ------------------------
+    Index: extra_key_witness_pkey
+    Index: (1
+    Index: row)
   Table: redeemer_data
     Index: indexname
-    Index: -------------------------
+    Index: ----------------------
     Index: redeemer_data_pkey
     Index: unique_redeemer_data
-    Index: redeemer_data_tx_id_idx
+    Index: (2
+    Index: rows)
   Table: reference_tx_in
     Index: indexname
-    Index: -------------------------------
+    Index: ------------------------------
     Index: reference_tx_in_pkey
-    Index: reference_tx_in_tx_out_id_idx
+    Index: unique_ref_tx_in
+    Index: idx_reference_tx_in_tx_in_id
+    Index: (3
+    Index: rows)
   Table: collateral_tx_out
     Index: indexname
-    Index: -------------------------------------------
+    Index: ------------------------
     Index: collateral_tx_out_pkey
-    Index: collateral_tx_out_stake_address_id_idx
-    Index: collateral_tx_out_inline_datum_id_idx
-    Index: collateral_tx_out_reference_script_id_idx
+    Index: unique_col_txout
+    Index: (2
+    Index: rows)
   Table: reverse_index
     Index: indexname
     Index: --------------------
     Index: reverse_index_pkey
+    Index: (1
+    Index: row)
   Table: epoch_stake_progress
     Index: indexname
     Index: -----------------------------
     Index: epoch_stake_progress_pkey
     Index: unique_epoch_stake_progress
+    Index: (2
+    Index: rows)
   Table: extra_migrations
     Index: indexname
     Index: -----------------------
     Index: extra_migrations_pkey
+    Index: (1
+    Index: row)
   Table: drep_hash
     Index: indexname
     Index: ------------------
     Index: drep_hash_pkey
     Index: unique_drep_hash
+    Index: (2
+    Index: rows)
   Table: delegation_vote
     Index: indexname
     Index: ----------------------
     Index: delegation_vote_pkey
+    Index: (1
+    Index: row)
   Table: committee_registration
     Index: indexname
     Index: -----------------------------
     Index: committee_registration_pkey
+    Index: (1
+    Index: row)
+  Table: committee_de_registration
+    Index: indexname
+    Index: --------------------------------
+    Index: committee_de_registration_pkey
+    Index: (1
+    Index: row)
   Table: voting_anchor
     Index: indexname
     Index: ----------------------
     Index: voting_anchor_pkey
     Index: unique_voting_anchor
-  Table: committee_de_registration
-    Index: indexname
-    Index: --------------------------------
-    Index: committee_de_registration_pkey
+    Index: (2
+    Index: rows)
   Table: treasury_withdrawal
     Index: indexname
     Index: --------------------------
     Index: treasury_withdrawal_pkey
+    Index: (1
+    Index: row)
   Table: drep_registration
     Index: indexname
     Index: ------------------------
     Index: drep_registration_pkey
-  Table: governance_action
-    Index: indexname
-    Index: ------------------------
-    Index: governance_action_pkey
-  Table: voting_procedure
-    Index: indexname
-    Index: -----------------------
-    Index: voting_procedure_pkey
+    Index: (1
+    Index: row)
   Table: anchor_offline_data
     Index: indexname
     Index: --------------------------
     Index: anchor_offline_data_pkey
+    Index: (1
+    Index: row)
   Table: anchor_offline_fetch_error
     Index: indexname
     Index: ---------------------------------
     Index: anchor_offline_fetch_error_pkey
+    Index: (1
+    Index: row)
+  Table: voting_procedure
+    Index: indexname
+    Index: -----------------------
+    Index: voting_procedure_pkey
+    Index: (1
+    Index: row)
   Table: param_proposal
     Index: indexname
-    Index: -------------------------------------
+    Index: -----------------------
     Index: param_proposal_pkey
-    Index: idx_param_proposal_registered_tx_id
-    Index: idx_param_proposal_cost_model_id
-  Table: off_chain_anchor_data
+    Index: unique_param_proposal
+    Index: (2
+    Index: rows)
+  Table: gov_action_proposal
     Index: indexname
-    Index: ----------------------------
-    Index: off_chain_anchor_data_pkey
+    Index: --------------------------
+    Index: gov_action_proposal_pkey
+    Index: (1
+    Index: row)
   Table: epoch_param
     Index: indexname
-    Index: -------------------------------
-    Index: epoch_param_pkey
-    Index: idx_epoch_param_block_id
-    Index: idx_epoch_param_cost_model_id
-  Table: new_committee
-    Index: indexname
     Index: --------------------
-    Index: new_committee_pkey
+    Index: epoch_param_pkey
+    Index: unique_epoch_param
+    Index: (2
+    Index: rows)
   Table: drep_distr
     Index: indexname
     Index: -------------------
     Index: drep_distr_pkey
     Index: unique_drep_distr
-  Table: off_chain_anchor_fetch_error
+    Index: (2
+    Index: rows)
+  Table: new_committee
+    Index: indexname
+    Index: --------------------
+    Index: new_committee_pkey
+    Index: (1
+    Index: row)
+  Table: off_chain_vote_data
+    Index: indexname
+    Index: ----------------------------
+    Index: off_chain_vote_data_pkey
+    Index: unique_off_chain_vote_data
+    Index: (2
+    Index: rows)
+  Table: off_chain_vote_fetch_error
     Index: indexname
     Index: -----------------------------------
-    Index: off_chain_anchor_fetch_error_pkey
+    Index: off_chain_vote_fetch_error_pkey
+    Index: unique_off_chain_vote_fetch_error
+    Index: (2
+    Index: rows)
+  Table: constitution
+    Index: indexname
+    Index: -------------------
+    Index: constitution_pkey
+    Index: (1
+    Index: row)
+  Table: (64
+    Index: indexname
+    Index: -----------
+    Index: (0
+    Index: rows)
+  Table: rows)
+    Index: indexname
+    Index: -----------
+    Index: (0
+    Index: rows)

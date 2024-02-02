@@ -433,7 +433,7 @@ menu() {
                         read -r -p "Press enter to continue"
                     else
                         # Executing commands in the found container
-                        docker exec -it -u postgres "$container_id" bash -c "/scripts/kltables.sh > /scripts/TablesAndIndexesList.txt"
+                        docker exec -it -u postgres "$container_id" bash -c "/scripts/klTablesAndIndexes.sh" > scripts/TablesAndIndexesList.txt
                         echo "TablesAndIndexesList.txt File created in your script folder."
                     fi
                     show_splash_screen

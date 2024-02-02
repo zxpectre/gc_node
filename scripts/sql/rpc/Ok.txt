@@ -1,0 +1,3 @@
+/scripts/sql/rpc/02_indexes/13_1_00.sql
+/scripts/sql/rpc/99_addons/cardano-graphql/20_up.sql
+/scripts/sql/rpc/99_addons/koios/02_indexes/13_1_00.sql
